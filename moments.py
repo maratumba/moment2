@@ -31,7 +31,7 @@ class MomentCalc(object):
         self.values = []
         self.args = np.array([(p, t) for t in self.times
                               for p in self.points],
-                             dtype=[('points', np.float64, (2,)),
+                             dtype=[('points', np.float64, (self.dimension,)),
                                     ('times', np.float64)])
         for point, time in self.args:
             self.values.append(self.function(point, time))
@@ -77,7 +77,7 @@ class MomentCalc(object):
 
     def center_of_gravity(self):
         self.m0 = self.moment0()
-        m1 = self.moment_all([0, 0], 0, m=1, n=0)
+        m1 = self.moment_all(np.zeros(self.dimension), 0, m=1, n=0)
         return m1/self.m0
 
     def animate_function(self):
