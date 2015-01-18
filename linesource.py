@@ -2,7 +2,7 @@
 import math
 import numpy as np
 
-from moments.calculators import MomentCalc
+from moments.calculators import ScalarMomentCalc
 
 
 def distance_to_line(p0, v, point):
@@ -90,7 +90,7 @@ dt = 0.01
 
 import time as tm
 
-calc = MomentCalc(linesource_optimized, limits, whole, [dx, dx, dt])
+calc = ScalarMomentCalc(linesource_optimized, limits, whole, [dx, dx, dt])
 # calc.animate_function()
 a = tm.time()
 print("M0:", calc.moment0())

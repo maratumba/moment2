@@ -8,7 +8,8 @@ from moments.utils import animate_1d_function
 from moments.utils import animate_2d_function
 
 
-class MomentCalc(object):
+class ScalarMomentCalc(object):
+    """Moment Calculator for scalar valued functions"""
     def __init__(self,  function, limits, domain, sample_rates):
         self.function = function
         self.dxs = sample_rates[:-1]
