@@ -2,10 +2,10 @@
 import itertools
 import numpy as np
 
-from utils import grid
-from utils import crange
-from utils import animate_1d_function
-from utils import animate_2d_function
+from moments.utils import grid
+from moments.utils import crange
+from moments.utils import animate_1d_function
+from moments.utils import animate_2d_function
 
 
 class MomentCalc(object):

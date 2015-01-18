@@ -2,7 +2,7 @@
 import math
 import numpy as np
 
-from moments import MomentCalc
+from moments.calculators import MomentCalc
 
 
 def distance_to_line(p0, v, point):
