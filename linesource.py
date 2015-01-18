@@ -83,14 +83,16 @@ def get_linesource(amp=1, x0=0, y0=0, v=1,
     return specialized_linesource
 
 
-limits = [[-1, 1], [-1, 1], [0, 1]]
+limits = [[-1, 1], [-1, 1]]
+time_limit = [0, 1]
 whole = lambda p: True
 dx = 0.01
 dt = 0.01
 
 import time as tm
 
-calc = ScalarMomentCalc(linesource_optimized, limits, whole, [dx, dx, dt])
+calc = ScalarMomentCalc(linesource_optimized, limits, [dx, dx], whole,
+                        time_limit, dt)
 # calc.animate_function()
 a = tm.time()
 print("M0:", calc.moment0())

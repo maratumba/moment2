@@ -10,18 +10,19 @@ from moments.utils import animate_2d_function
 
 class ScalarMomentCalc(object):
     """Moment Calculator for scalar valued functions"""
-    def __init__(self,  function, limits, domain, sample_rates):
+    def __init__(self,  function, space_intervals, dxs, domain,
+                 time_interval=[1, 1], dt=1):
         self.function = function
-        self.dxs = sample_rates[:-1]
+        self.dxs = dxs
 
         # multiply dx terms to find dv
         self.dv = 1
         for dx in self.dxs:
             self.dv *= dx
 
-        self.dt = sample_rates[-1]  # last one is for time
-        self.points = grid(limits[:-1], sample_rates, domain)
-        self.times = crange(limits[-1][0], limits[-1][1], self.dt)
+        self.dt = dt
+        self.points = grid(space_intervals, dxs, domain)
+        self.times = crange(time_interval[0], time_interval[1], self.dt)
         self.dimension = len(self.dxs)
         self.m0 = None
         self.values = None
