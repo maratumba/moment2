@@ -56,14 +56,6 @@ def polargrid(limits, sample_rates, domain):
     return points
 
 
-def integrate(function, points, times, dv, dt):
-    integral = 0
-    for t in times:
-        for point in points:
-            integral = integral + function(point, t)*dv(point)*dt
-    return integral
-
-
 def animate_2d_function(function, points, times):
     fig = plt.figure()
     ax = fig.add_subplot(111, projection='3d')
