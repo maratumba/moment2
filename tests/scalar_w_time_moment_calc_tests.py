@@ -52,6 +52,11 @@ class Scalar1DFunctionWithTime(unittest.TestCase):
         self.assertAlmostEqual(self.calc.moment([0], 0, n=2),
                                1/8, 2)
 
+    def test_time_moment2_w_all(self):
+        # (x^2/2)*(t^4/4) = 1/8
+        self.assertAlmostEqual(self.calc.moment_all([0], 0, n=2),
+                               1/8, 2)
+
     def test_time_and_spatial_moment(self):
         # (x^3/3)*(t^3/3) = 1/9
         self.assertAlmostEqual(self.calc.moment_all([0], 0, m=1, n=1)[0],

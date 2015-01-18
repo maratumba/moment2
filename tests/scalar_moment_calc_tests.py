@@ -18,6 +18,12 @@ class Scalar1DFunction(unittest.TestCase):
         self.assertAlmostEqual(self.calc.moment0(),
                                0.5, 2)
 
+    def test_moment0_recalc(self):
+        self.assertAlmostEqual(self.calc.moment0(),
+                               0.5, 2)
+        self.assertAlmostEqual(self.calc.moment0(),
+                               0.5, 2)
+
     def test_moment1(self):
         # x^3/3 =  1/3
         self.assertAlmostEqual(self.calc.moment([0], 0, m=1, ks=[0]),
