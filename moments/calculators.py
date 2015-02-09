@@ -225,3 +225,47 @@ class ScalarMomentCalc(DiscreteScalarMomentCalc):
             animate_2d_function(self.function, self.points, self.times)
         else:
             print("cannot animate")
+
+
+class TensorMomentCalc(DiscreteScalarMomentCalc):
+    def __init__(self, values, points, times, dxs, dt):
+
+        self.real_values = values
+        self.tensor_m0 = None
+        self.shape = values[0].shape
+        self.points = points
+        self.times = times
+        self.dxs = dxs
+        self.dt = dt
+        projected_values = self._project_values_to_m0()
+        super(TensorMomentCalc, self).__init__(projected_values,
+                                               points,
+                                               times,
+                                               dxs, dt)
+
+    def tensor_moment0(self, recalc=False):
+        if self.tensor_m0 is not None and not recalc:
+            return self.tensor_m0
+
+        self.tensor_m0 = np.zeros(self.shape)
+        # for each element find m0
+        for i in range(self.shape[0]):
+            for j in range(self.shape[1]):
+                calc = DiscreteScalarMomentCalc(self.real_values[:, i, j],
+                                                self.points,
+                                                self.times,
+                                                self.dxs,
+                                                self.dt)
+                self.tensor_m0[i, j] = calc.moment0()
+        return self.tensor_m0
+
+    def _project_values_to_m0(self):
+        if self.tensor_m0 is None:
+            self.tensor_m0 = self.tensor_moment0()
+
+        projected_values = np.zeros(len(self.real_values))
+
+        for i, value in enumerate(self.real_values):
+            projected_values[i] = np.tensordot(value, self.tensor_m0)
+
+        return projected_values
