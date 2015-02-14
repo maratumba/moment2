@@ -263,9 +263,7 @@ class TensorMomentCalc(DiscreteScalarMomentCalc):
         if self.tensor_m0 is None:
             self.tensor_m0 = self.tensor_moment0()
 
-        projected_values = np.zeros(len(self.real_values))
-
-        for i, value in enumerate(self.real_values):
-            projected_values[i] = np.tensordot(value, self.tensor_m0)
+        projected_values = np.tensordot(self.real_values,
+                                        self.tensor_m0)
 
         return projected_values
