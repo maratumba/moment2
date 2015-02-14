@@ -38,21 +38,31 @@ M = generate_moment_tensor((1, 0, 0), (0, 0, 1))
 print("M:", M)
 
 
-def line(x):
-    """Returns a point on a 2d line
+def plane(x, y):
+    """Returns a point on a plane
 
-    line(x) = start + v*x
+    plane(x, y) = start + x*s + y*t
     """
-    start = np.array([0, 0])
-    v = np.array([1, 1])
-    return start + v*x
+    start = np.array([1, 1, 1])
+    s = np.array([1, 0, 0])
+    t = np.array([0, 0, 1])
+    return start + x*s + y*t
 
 
-def gaussian(x):
-    center = 2.5
+def arrival_to(x, y):
+    """Calculates the arrival time to a point
+    propagation only goes in `t` direction
+    """
+    v = 1
+    return y/v
+
+
+def gaussian2d(x, y):
+    center = np.array([2.5, 4])
+    dist = np.linalg.norm(np.array([x, y]) - center)
     std = 2
     amp = 1
-    return amp*math.exp(-1*(x-center)**2/(2*std**2))
+    return amp*math.exp(-1*(dist)**2/(2*std**2))
 
 
 def trapezoid(t, tw=0):
@@ -60,8 +70,8 @@ def trapezoid(t, tw=0):
      __
     /  \
     """
-    ts = 0.2 # rising time
-    tc = 1   # slip time
+    ts = 0.2  # rising time
+    tc = 1    # slip time
     if t < tw:
         return 0
     t = t - tw
@@ -74,36 +84,36 @@ def trapezoid(t, tw=0):
     return 0
 
 # points = np.array([line(x) for x in range(5)])
-sample_points = np.linspace(0, 5, 100)
-points = np.array([line(x) for x in sample_points])
-amps = np.array([gaussian(x) for x in sample_points])
-times = np.linspace(0, 9, 900)
-arguments = np.array([(p, t, amp) for t in times
-                      for p, amp in zip(points, amps)],
-                     dtype=[('points', np.float64, (2,)),
-                            ('times', np.float64),
-                            ('amps', np.float64)])
-
-# get amp from gaussian
+points = np.array([(x, y) for x in np.linspace(0, 5, 50)
+                   for y in np.linspace(0, 8, 80)])
 
 
-def arrival_to(point):
-    """Calculates the arrival time to a `point`"""
-    v = 1
-    start = np.array([0, 0])
-    distance = np.linalg.norm(start-point)
-    return distance/v
+times = np.linspace(0, 10, 100)
+arg_len = len(points)*len(times)
 
 
-values = np.zeros((len(arguments), 3, 3))
-for i, arg in enumerate(arguments):
-    point, time, amp = arg
-    tw = arrival_to(point)
-    values[i, :, :] = amp*trapezoid(time, tw)*M
-dxs = [0.05, 0.05]
-dt = 0.01
+def get_args():
+    points3d = np.zeros((arg_len, 3))
+    times3d = np.zeros(arg_len)
+    values = np.zeros((arg_len, 3, 3))
+    index = 0
+    for x, y in points:
+        for time in times:
+            points3d[index] = plane(x, y)
+            times3d[index] = time
+            t_arr = arrival_to(x, y)
+            amp = gaussian2d(x, y)
+            values[index] = amp*trapezoid(time, t_arr)*M
+            index = index + 1
+    return points3d, times3d, values
 
-calc = TensorMomentCalc(values, arguments['points'], arguments['times'],
+
+points3d, times3d, values = get_args()
+dxs = [0.1, 0.1, 0.1]
+dt = 0.1
+
+
+calc = TensorMomentCalc(values, points3d, times3d,
                         dxs, dt)
 print("M0:", calc.tensor_moment0())
 center = calc.center_of_gravity()
