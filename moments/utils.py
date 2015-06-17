@@ -193,3 +193,50 @@ def animate_2d_function(function, points, times):
                                   times, interval=50,
                                   repeat_delay=1000, blit=True)
     plt.show()
+
+
+def write_tensor_moment_info_file(calc, out_file):
+    """Calculates moment values and writes them to a file
+
+    Args:
+        calc (moments.TensorMomentCalc): moment calculator instance
+        out_file (str): filename to write information
+    """
+    m0 = calc.tensor_moment0()
+    m00 = calc.moment0()
+    center = calc.center_of_gravity()
+    tc = calc.moment_all(center, 0, n=1)/calc.moment0()
+
+    m10 = calc.moment_all(center, tc, m=1)
+    m20 = calc.moment_all(center, tc, m=2)
+    m11 = calc.moment_all(center, tc, m=1, n=1)
+    m01 = calc.moment_all(center, tc, n=1)
+    m02 = calc.moment_all(center, tc, n=2)
+
+    np.savez(out_file, m0=m0, m00=m00, center_space=center, center_time=tc,
+             m10=m10, m20=m20, m11=m11, m01=m01, m02=m02)
+
+
+def read_tensor_moment_info_file(data_file):
+    """Read tensor moment information file and returns values as a dict
+
+    Args:
+        data_file (str): data file name
+
+    Returns:
+       dict: moment values
+    """
+    data = np.load(data_file)
+    moments = {
+        'm0': data['m0'],
+        'center_space': data['center_space'],
+        'center_time': data['center_time'],
+        (0, 0): data['m00'],
+        (1, 0): data['m10'],
+        (2, 0): data['m20'],
+        (0, 1): data['m01'],
+        (1, 1): data['m11'],
+        (0, 2): data['m02']
+    }
+    data.close()
+    return moments
