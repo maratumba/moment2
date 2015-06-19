@@ -46,7 +46,7 @@ def calc_station(folder, name, component, m0, moments):
                             st = r.get_h(component, k, l, '', n)
                             tr = st[0]
                             if data is None:
-                                data = Trace(co*f*m0[k][l]*tr.data)
+                                data = Trace(co*f*m0[k][l]*tr.data, tr.stats)
                             else:
                                 data.data = data.data + co*f*m0[k][l]*tr.data
                         elif m == 1:
