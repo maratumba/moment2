@@ -81,13 +81,12 @@ def get_slip_rate_function(rise, fall, rupt_time=0):
 
 
 class Point(object):
-    def __init__(self, match, da, mu):
+    def __init__(self, match, mu):
         """Stores parameters for a point and from those it can calculate
         moment_tensor for a given time.
 
         Args:
             match (match): regular expression match for a file line
-            da (float): area (dx*dy)
             mu (float): rigidity (dyne/cm^2)
         """
         self.lon = float(match.group('lon'))
@@ -101,7 +100,6 @@ class Point(object):
         self.fall = float(match.group('fall'))
         self.strike = float(match.group('strike'))
         self.dip = float(match.group('dip'))
-        self.da = da
         self.mu = mu
         self.m = None
         self.slip_rate_func = get_slip_rate_function(self.rise, self.fall,
@@ -120,8 +118,8 @@ class Point(object):
             return self.m
         m = calc_moment_tensor(self.strike, self.dip, self.rake)
 
-        # m0 = mu*A*D
-        m0 = self.mu*self.da*self.slip
+        # m0 = mu*D
+        m0 = self.mu*self.slip
         self.m = m0*m
 
         return self.m
@@ -190,7 +188,7 @@ def readfile(filename, mu):
             f.readline()  # Lon. Lat. depth dist...
 
             # read `n_p` points
-            points = [Point(point.match(f.readline()), dx*dy, mu)
+            points = [Point(point.match(f.readline()), mu)
                       for i in range(n_p)]
 
             total_n_p += n_p
