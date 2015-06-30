@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import argparse
+from collections import defaultdict
 import numpy as np
 from numpy import cos, sin
 import re
@@ -87,7 +88,7 @@ class Point(object):
 
         Args:
             match (match): regular expression match for a file line
-            mu (float): rigidity (dyne/cm^2)
+            mu (dict): rigidity value contaning dict (dyne/cm^2)
         """
         self.lon = float(match.group('lon'))
         self.lat = float(match.group('lat'))
@@ -100,7 +101,7 @@ class Point(object):
         self.fall = float(match.group('fall'))
         self.strike = float(match.group('strike'))
         self.dip = float(match.group('dip'))
-        self.mu = mu
+        self.mu = mu[self.depth]
         self.m = None
         self.slip_rate_func = get_slip_rate_function(self.rise, self.fall,
                                                      self.rupt_time)
@@ -141,7 +142,7 @@ def readfile(filename, mu):
 
     Args:
         filename (str): filename to parse
-        mu (float): rigidity value (dyne/cm^2)
+        mu (dict): rigidity values (dyne/cm^2)
 
     Returns:
        list: Point list
@@ -243,6 +244,26 @@ def generate_time_space_points(points, xyz, dt):
             v_points.append(loc)
     return (np.array(values), np.array(v_points), np.array(v_times))
 
+
+def read_rigidity_file(filename):
+    """Read rigidity file and return values as a dict
+
+    Args:
+        filename: file to contain rigidity information
+
+    Returns:
+        dict: rigidity values
+    """
+    values = {}
+    with open(filename) as f:
+        lines = f.readlines()
+
+    for line in lines:
+        depth, value = [float(v) for v in line.split()]
+        values[depth] = value
+
+    return values
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(
         description="Parses kinetic_out file and calculates moment values")
@@ -255,9 +276,19 @@ if __name__ == '__main__':
     parser.add_argument("--rigidity", '-m',
                         help="rigidity value (default is 3x10^11 dyne/cm^2)",
                         default=3e11, type=float)
+    parser.add_argument("--rigidities", "-r",
+                        help="read a file containing rigidity info for depth",
+                        type=str)
     args = parser.parse_args()
 
-    xyz, points, dx, dy = readfile(args.filename, args.rigidity)
+    # If rigidity file is provided, use that, otherwise use one value
+    # Using defaultdict to be consistent with data structure
+    # This will give same value for any depth.
+    rigidity = defaultdict(lambda: args.rigidity)
+    if args.rigidities:
+        rigidity = read_rigidity_file(args.rigidities)
+
+    xyz, points, dx, dy = readfile(args.filename, rigidity)
     if args.plot:
         plot_points(xyz, points)
 
