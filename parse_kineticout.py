@@ -200,8 +200,8 @@ def readfile(filename, mu):
         for i in range(nx):
             p = points[i+j*nx]
             t = utm.from_latlon(p.lat, p.lon)
-            y = (t[1] - ev_x)/1000  # norting in km
-            x = (t[0] - ev_y)/1000  # easting in km
+            x = (t[1] - ev_x)/1000  # norting in km
+            y = (t[0] - ev_y)/1000  # easting in km
             xyz[i+j*nx] = [x, y, p.depth]
     return (xyz, points, dx, dy)
 
