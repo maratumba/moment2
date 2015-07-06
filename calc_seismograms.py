@@ -16,7 +16,7 @@ import math
 import numpy as np
 
 
-def calc_station(folder, name, component, m0, moments):
+def calc_station(folder, name, component, moments):
     """Calculate station seismogram for given moments and green's
     functions (and their derivatives)
 
@@ -24,7 +24,6 @@ def calc_station(folder, name, component, m0, moments):
         folder (str): folder that contains green's functions
         name (str): station name
         component (str): component to calculate (r, t, z)
-        m0 (numpy.ndarray): normalized moment tensor
         moments (dict): moments info object
 
     Returns:
@@ -37,31 +36,31 @@ def calc_station(folder, name, component, m0, moments):
     for m in range(3):
         for n in range(3):
             if m+n <= 2:
-                f = moments[(m, n)]
                 # FIXME: divide by 10^15 dyne/cm^2 ?
                 co = ((-1.0)**n)/(math.factorial(m)*math.factorial(n))/1e15
                 for k in range(3):
                     for l in range(3):
+                        f = moments[(m, n)][k, l]
                         if m == 0:
                             st = r.get_h(component, k, l, '', n)
                             tr = st[0]
                             if data is None:
-                                data = Trace(co*f*m0[k][l]*tr.data, tr.stats)
+                                data = Trace(co*f*tr.data, tr.stats)
                             else:
-                                data.data = data.data + co*f*m0[k][l]*tr.data
+                                data.data = data.data + co*f*tr.data
                         elif m == 1:
                             c = 'xyz'
                             for i in range(3):
                                 st = r.get_h(component, k, l, c[i], n)
                                 tr = st[0]
-                                data.data = data.data + co*f[i]*m0[k][l]*tr.data
+                                data.data = data.data + co*f[i]*tr.data
                         else:  # m == 2
                             c = 'xyz'
                             for i in range(3):
                                 for j in range(3):
                                     st = r.get_h(component, k, l, c[i]+c[j], n)
                                     tr = st[0]
-                                    data.data = data.data + co*f[i][j]*m0[k][l]*tr.data
+                                    data.data = data.data + co*f[i][j]*tr.data
 
     stream = Stream(traces=[data])
     return stream
@@ -114,7 +113,6 @@ if __name__ == '__main__':
 
     # read moment information file
     moments = read_tensor_moment_info_file(args.momentfile)
-    m0 = moments['m0']/np.sum(moments['m0'])
 
     if not args.station_names:  # if no station name is given
         folders = glob.glob(os.path.join(args.greens_path, '*_greens'))
@@ -126,8 +124,7 @@ if __name__ == '__main__':
         for component in args.components:
             st = calc_station(station_path(args.greens_path,
                                            station_name),
-                              station_name, component,
-                              m0, moments)
+                              station_name, component, moments)
             write_stream_as_sac(st, args.output_folder,
                                 station_name+'.'+component,
                                 args.verbose)

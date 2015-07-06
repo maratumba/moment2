@@ -289,6 +289,7 @@ class TensorMomentCalc(DiscreteScalarMomentCalc):
         self.times = times
         self.dxs = dxs
         self.dt = dt
+        self.comp_calc = None
         projected_values = self._project_values_to_m0()
         # projected_values is a scalar distribution. So, we can use
         # DiscreteScalarMomentCalc operations.
@@ -321,6 +322,7 @@ class TensorMomentCalc(DiscreteScalarMomentCalc):
             return self.tensor_m0
 
         self.tensor_m0 = np.zeros(self.shape)
+        self.comp_calc = np.zeros(self.shape, dtype=DiscreteScalarMomentCalc)
         # for each element find m0
         for i in range(self.shape[0]):
             for j in range(self.shape[1]):
@@ -333,6 +335,7 @@ class TensorMomentCalc(DiscreteScalarMomentCalc):
                                                 self.times,
                                                 self.dxs,
                                                 self.dt)
+                self.comp_calc[i, j] = calc
                 self.tensor_m0[i, j] = calc.moment0()
         return self.tensor_m0
 
@@ -350,3 +353,23 @@ class TensorMomentCalc(DiscreteScalarMomentCalc):
                                         self.tensor_m0)
 
         return projected_values
+
+    def tensor_moment_all(self, q, tau, m=0, n=0):
+        """Return all moment values for tensor
+        """
+
+        if m == 0:
+            moment_shape = (self.shape[0], self.shape[1])
+        elif m == 1:
+            moment_shape = (self.shape[0], self.shape[1],
+                            self.dimension)
+        elif m == 2:
+            moment_shape = (self.shape[0], self.shape[1],
+                            self.dimension, self.dimension)
+
+        moment = np.zeros(moment_shape)
+
+        for i in range(self.shape[0]):
+            for j in range(self.shape[1]):
+                moment[i, j] = self.comp_calc[i, j].moment_all(q, tau, m, n)
+        return moment
