@@ -294,5 +294,5 @@ if __name__ == '__main__':
 
     v, p, t = generate_time_space_points(points, xyz, args.dt)
 
-    calc = TensorMomentCalc(v, p, t, [dx, dy, 1], args.dt)
+    calc = TensorMomentCalc(v, p, t, [dx, dy], args.dt)
     write_tensor_moment_info_file(calc, args.output)

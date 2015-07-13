@@ -40,7 +40,7 @@ class DiscreteScalarMomentCalc(object):
 
     """
     def __init__(self, values, points, times, dxs, dt):
-        self.dimension = len(dxs)
+        self.dimension = len(points[0])
         self.values = values
         self.points = points
         self.times = times
