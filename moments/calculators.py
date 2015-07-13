@@ -270,6 +270,110 @@ class ScalarMomentCalc(DiscreteScalarMomentCalc):
             print("cannot animate")
 
 
+class VectorMomentCalc(DiscreteScalarMomentCalc):
+    """Moment calculator for vector distributions
+
+    Args:
+        values (numpy.ndarray): discretely distributed vector values
+        points (numpy.ndarray): points which values belong
+        times (numpy.ndarray): times which values belong
+        dxs (list): [dx, dy, dz] values
+        dt (float): dt value
+    """
+    def __init__(self, values, points, times, dxs, dt):
+
+        self.real_values = values
+        self.vector_m0 = None
+        self.shape = values[0].shape
+        self.points = points
+        self.times = times
+        self.dxs = dxs
+        self.dt = dt
+        self.comp_calc = None
+        projected_values = self._project_values_to_m0()
+        # projected_values is a scalar distribution. So, we can use
+        # DiscreteScalarMomentCalc operations.
+        super(VectorMomentCalc, self).__init__(projected_values,
+                                               points,
+                                               times,
+                                               dxs, dt)
+
+    def vector_moment0(self, recalc=False):
+        """Returns zero order moment for vector distribution.
+
+        It is calculated by treating each component of vector as
+        scalar distribution. Resulting vector's components are
+        calculated by calculating zero order moment for each
+        component distribution.
+
+        Args:
+
+            recalc (bool, optional): calculate the value even if it is
+              calcuted before. Otherwise, it will return the cached
+              value.
+
+        Returns:
+
+            (numpy.ndarray): vector zero order moment which has same
+            shape as input values
+
+        """
+        if self.vector_m0 is not None and not recalc:
+            return self.vector_m0
+
+        self.vector_m0 = np.zeros(self.shape)
+        self.comp_calc = np.zeros(self.shape, dtype=DiscreteScalarMomentCalc)
+        # for each element find m0
+        for i in range(self.shape[0]):
+            # Treat each component distribution as scalar
+            # distribution.
+            # self.real_values[:, 1, 1] will return (1, 1)
+            # component of all vectors in the distribution.
+            calc = DiscreteScalarMomentCalc(self.real_values[:, i],
+                                            self.points,
+                                            self.times,
+                                            self.dxs,
+                                            self.dt)
+            self.comp_calc[i] = calc
+            self.vector_m0[i] = calc.moment0()
+        return self.vector_m0
+
+    def _project_values_to_m0(self):
+        # If vector_m0 is not calculated before, calculate it first.
+        if self.vector_m0 is None:
+            self.vector_m0 = self.vector_moment0()
+
+        # This operation will dot product all vector values with the
+        # zero order moment. Which means sum of element-wise
+        # multiplication. Thus, this will turn vector distribution
+        # into a scalar distribution. We can think this operation as
+        # projection onto zero order moment.
+        print(self.real_values, self.vector_m0)
+        projected_values = np.dot(self.real_values,
+                                  self.vector_m0)
+
+        return projected_values
+
+    def vector_moment_all(self, q, tau, m=0, n=0):
+        """Return all moment values for vector
+        """
+
+        if m == 0:
+            moment_shape = (self.shape[0],)
+        elif m == 1:
+            moment_shape = (self.shape[0],
+                            self.dimension)
+        elif m == 2:
+            moment_shape = (self.shape[0],
+                            self.dimension, self.dimension)
+
+        moment = np.zeros(moment_shape)
+
+        for i in range(self.shape[0]):
+            moment[i] = self.comp_calc[i].moment_all(q, tau, m, n)
+        return moment
+
+
 class TensorMomentCalc(DiscreteScalarMomentCalc):
     """Moment calculator for second rank tensor distributions
 
