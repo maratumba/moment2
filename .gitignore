@@ -5,3 +5,5 @@ __pycache__
 .coverage
 *.npz
 seismograms
+build
+dist
