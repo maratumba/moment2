@@ -1,0 +1,9 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+import sys
+from moments.utils import read_tensor_moment_info_file
+
+data = read_tensor_moment_info_file(sys.argv[1])
+
+for datum in data:
+    print(datum, data[datum])

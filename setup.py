@@ -12,7 +12,8 @@ setup(
     keywords="example documentation tutorial",
     url="http://rdno.org/momentcalc",
     packages=['moments', 'greens'],
-    scripts=['scripts/calc_seismograms', 'scripts/parse_kineticout'],
+    scripts=['scripts/calc_seismograms', 'scripts/parse_kineticout',
+             'scripts/parse_kineticxyz', 'scripts/read_moments'],
     long_description="Moment Calculators for fault planes and utilities to work with green's functions.",
     classifiers=[
         "Development Status :: 3 - Alpha",
