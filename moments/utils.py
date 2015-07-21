@@ -217,6 +217,28 @@ def write_tensor_moment_info_file(calc, out_file):
              m10=m10, m20=m20, m11=m11, m01=m01, m02=m02)
 
 
+def write_vector_moment_info_file(calc, out_file):
+    """Calculates moment values and writes them to a file
+
+    Args:
+        calc (moments.VectorMomentCalc): moment calculator instance
+        out_file (str): filename to write information
+    """
+    m0 = calc.moment0()
+    m00 = calc.vector_moment0()
+    center = calc.center_of_gravity()
+    tc = calc.moment_all(center, 0, n=1)/calc.moment0()
+
+    m10 = calc.vector_moment_all(center, tc, m=1)
+    m20 = calc.vector_moment_all(center, tc, m=2)
+    m11 = calc.vector_moment_all(center, tc, m=1, n=1)
+    m01 = calc.vector_moment_all(center, tc, n=1)
+    m02 = calc.vector_moment_all(center, tc, n=2)
+
+    np.savez(out_file, m0=m0, m00=m00, center_space=center, center_time=tc,
+             m10=m10, m20=m20, m11=m11, m01=m01, m02=m02)
+
+
 def read_tensor_moment_info_file(data_file):
     """Read tensor moment information file and returns values as a dict
 

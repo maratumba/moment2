@@ -348,7 +348,6 @@ class VectorMomentCalc(DiscreteScalarMomentCalc):
         # multiplication. Thus, this will turn vector distribution
         # into a scalar distribution. We can think this operation as
         # projection onto zero order moment.
-        print(self.real_values, self.vector_m0)
         projected_values = np.dot(self.real_values,
                                   self.vector_m0)
 

@@ -4,6 +4,9 @@ __pycache__
 *.ipynb
 .coverage
 *.npz
-seismograms
 build
 dist
+*.z
+*.r
+*.t
+*.mac
