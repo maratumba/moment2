@@ -29,7 +29,7 @@ def calc_force_vector(strike, dip):
     phi = np.radians(strike)
     sigma = np.radians(dip)
 
-    return np.array([cos(phi), sin(phi), cos(sigma)])
+    return np.array([cos(phi), sin(phi), sin(sigma)])
 
 
 def get_slip_rate_function(rise, fall, rupt_time=0):
