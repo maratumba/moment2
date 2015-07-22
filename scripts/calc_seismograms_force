@@ -37,11 +37,11 @@ def calc_station(folder, name, component, moments):
         for n in range(3):
             if m+n <= 2:
                 # FIXME: divide by 10^15 dyne/cm^2 ?
-                co = ((-1.0)**n)/(math.factorial(m)*math.factorial(n))/1e15
+                co = (1.0)/(math.factorial(m)*math.factorial(n))/1e15
                 for k in range(3):
                     f = moments[(m, n)][k]
                     if m == 0:
-                        st = r.get_h(component, k, '', n)
+                        st = r.get(component, k, '', n)
                         tr = st[0]
                         if data is None:
                             data = Trace(co*f*tr.data, tr.stats)
@@ -50,14 +50,14 @@ def calc_station(folder, name, component, moments):
                     elif m == 1:
                         c = 'xyz'
                         for i in range(3):
-                            st = r.get_h(component, k, c[i], n)
+                            st = r.get(component, k, c[i], n)
                             tr = st[0]
                             data.data = data.data + co*f[i]*tr.data
                     else:  # m == 2
                         c = 'xyz'
                         for i in range(3):
                             for j in range(3):
-                                st = r.get_h(component, k, c[i]+c[j], n)
+                                st = r.get(component, k, c[i]+c[j], n)
                                 tr = st[0]
                                 data.data = data.data + co*f[i][j]*tr.data
 
