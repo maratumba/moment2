@@ -1,0 +1,146 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+import argparse
+import numpy as np
+
+from obspy.core import read
+from obspy.core.trace import Trace
+from obspy.core.stream import Stream
+
+
+from greens.utils import get_greens_name
+from greens.utils import get_greens_filename
+from greens.reader import ReaderNew
+from moments.utils import read_tensor_moment_info_file
+
+
+def find_non_zero_moments(moments):
+    """Find non zero moments
+
+    Args:
+        moments (dict): moments info object
+
+    Returns:
+        list: list of non zero moments ((m, n), index, value)
+    """
+    cutoff = 0.00001
+    non_zeros = []
+    for moment in moments:
+        m = moments[moment]
+        if isinstance(moment, tuple):  # do not go over center_* and m0
+            it = np.nditer(m, flags=['multi_index'])
+            while not it.finished:
+                if it[0] > cutoff:
+                    non_zeros.append((moment, it.multi_index,
+                                      m[it.multi_index]))
+                it.iternext()
+    return non_zeros
+
+
+def moment_notation(moment_index):
+    """Return human readable moment representation
+
+    Args:
+        moment_index (tuple): ((m,n), (indices))
+    """
+    (m, n), indices, value = moment_index
+
+    c = "xyz"
+    comp = "".join([c[index] for index in indices])
+
+    if comp == "":
+        return "M({m},{n})".format(m=m, n=n)
+
+    return "M_{comp}^({m}, {n})".format(m=m, n=n, comp=comp)
+
+
+def calc_derivative(moments, greens_names, der_to_compute,
+                    seismogramfile, greens_path, station_name):
+    """Calculate derivative
+
+    Args:
+        moments (list): non zero moments
+        der_id (int): derivative id to calculate
+        seismogramfile (str): seismogram file name without extension (u_n)
+        greens_path (str): folder that contains green's functions
+        station_name (str): name of the station
+
+    """
+    r = ReaderNew(greens_path, station_name)
+    for component in ['r', 't', 'z']:
+        print("u_"+component)
+        divider = 0
+        u = read(seismogramfile.replace(".z", "."+component))
+        tr = Trace(u[0].data, u[0].stats)
+        for moment, greens in zip(moments, greens_names):
+            a, b, m_value = moment
+            if greens == der_to_compute:
+                divider = m_value
+            else:
+                # change generic component name to a valid one
+                greens_name = greens.replace("_n", "_"+component)
+                g = r.get(greens_name)
+                print("- {0:.2f}*{1}".format(m_value, greens_name))
+                # HACK: should we divide by 2e15?
+                tr.data = tr.data - m_value*g[0].data/2e15
+
+        tr.data = tr.data / divider
+        print("/ {0:.2f} = {1}".format(divider, der_to_compute))
+        st = Stream(traces=[tr])
+        st.write(get_greens_filename(
+            der_to_compute.replace("_n", '_'+component),
+            station_name),
+                 "SAC")
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser(
+        description="Find derivative")
+    parser.add_argument("momentfile",
+                        help="moment file")
+    parser.add_argument("seismogramfile",
+                        help="seismogram filename (name.z)")
+    parser.add_argument("greens_path",
+                        help="folder that contains green's functions")
+    parser.add_argument("station_name",
+                        help="station name")
+    parser.add_argument("--derivative", '-d',
+                        help="""derivative to find (if it's not given, available options
+                        will be presented)""")
+    args = parser.parse_args()
+
+    moments = read_tensor_moment_info_file(args.momentfile)
+    non_zeros = find_non_zero_moments(moments)
+
+    moment_notations = [moment_notation(moment) for moment in non_zeros]
+    # FIXME: only works for force formulation
+    greens_names = [get_greens_name(moment[0][0], moment[0][1],
+                                    3, moment[1], for_force=True)
+                    for moment in non_zeros]
+    der_options = list(zip(moment_notations, greens_names))
+
+    if not args.derivative:
+        for i, der in enumerate(der_options):
+            print("{i}) {m:11s} {g:7s}".format(i=i,
+                                               m=der[0],
+                                               g=der[1]))
+        sel = int(input("Selection: "))
+        while sel >= len(der_options):
+            print("Not a valid selection.")
+            sel = int(input("Selection: "))
+
+        args.derivative = der_options[sel][1]
+
+    # Desired derivative's index in der_options and non_zeros
+    id_to_compute = -1
+    for i, opt in enumerate(der_options):
+        if opt[1] == args.derivative:
+            id_to_compute = i
+
+    if id_to_compute < 0:
+        raise Exception("Not a valid derivative")
+
+    calc_derivative(non_zeros, greens_names, args.derivative,
+                    args.seismogramfile,
+                    args.greens_path,
+                    args.station_name)
