@@ -11,7 +11,7 @@ from obspy.core.stream import Stream
 
 from greens.utils import get_greens_name
 from greens.utils import get_greens_filename
-from greens.reader import ReaderNew
+from greens.reader import Reader
 from moments.utils import read_tensor_moment_info_file
 
 
@@ -67,7 +67,7 @@ def calc_derivative(moments, greens_names, der_to_compute,
         station_name (str): name of the station
 
     """
-    r = ReaderNew(greens_path, station_name)
+    r = Reader(greens_path, station_name)
     for component in ['r', 't', 'z']:
         print("u_"+component)
         divider = 0

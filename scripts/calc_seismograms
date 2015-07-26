@@ -33,6 +33,7 @@ def calc_station(folder, name, component, moments):
     r = Reader(folder, name)
 
     data = None
+    c = 'xyz'
     for m in range(3):
         for n in range(3):
             if m+n <= 2:
@@ -42,25 +43,31 @@ def calc_station(folder, name, component, moments):
                     for l in range(3):
                         f = moments[(m, n)][k, l]
                         if m == 0:
-                            st = r.get_h(component, k, l, '', n)
+                            grn = "dt^{t} H_{n}{k},{l}"
+                            st = r.get(grn.format(t=n, n=component,
+                                                  k=c[k], l=c[l]))
                             tr = st[0]
                             if data is None:
                                 data = Trace(co*f*tr.data, tr.stats)
                             else:
                                 data.data = data.data + co*f*tr.data
                         elif m == 1:
-                            c = 'xyz'
-                            for i in range(3):
-                                st = r.get_h(component, k, l, c[i], n)
+                            for j1 in range(3):
+                                grn = "dt^{t} H_{n}{k},{l}{j1}"
+                                st = r.get(grn.format(t=n, n=component,
+                                                      k=c[k], l=c[l],
+                                                      j1=c[j1]))
                                 tr = st[0]
-                                data.data = data.data + co*f[i]*tr.data
+                                data.data = data.data + co*f[j1]*tr.data
                         else:  # m == 2
-                            c = 'xyz'
-                            for i in range(3):
-                                for j in range(3):
-                                    st = r.get_h(component, k, l, c[i]+c[j], n)
+                            for j1 in range(3):
+                                for j2 in range(3):
+                                    grn = "dt^{t} H_{n}{k},{l}{j1}{j2}"
+                                    st = r.get(grn.format(t=n, n=component,
+                                                          k=c[k], l=c[l],
+                                                          j1=c[j1], j2=c[j2]))
                                     tr = st[0]
-                                    data.data = data.data + co*f[i][j]*tr.data
+                                    data.data = data.data + co*f[j1][j2]*tr.data
 
     stream = Stream(traces=[data])
     return stream
@@ -78,20 +85,6 @@ def write_stream_as_sac(stream, folder, filename, verbose=False):
     stream.write(os.path.join(folder, filename), 'SAC')
     if verbose:
         print(os.path.join(folder, filename) + " is written.")
-
-
-def station_path(root_path, station_name):
-    """Returns station folder path
-    `root_path`/`station_name`_greens
-
-    Args:
-        root_path (str): root path for Green's function
-        station_name (str): station name
-
-    Returns:
-        str: full station path
-    """
-    return os.path.join(root_path, station_name+'_greens')
 
 
 if __name__ == '__main__':
@@ -122,8 +115,7 @@ if __name__ == '__main__':
     # calculate seismogram and write it as a sac file
     for station_name in args.station_names:
         for component in args.components:
-            st = calc_station(station_path(args.greens_path,
-                                           station_name),
+            st = calc_station(args.greens_path,
                               station_name, component, moments)
             write_stream_as_sac(st, args.output_folder,
                                 station_name+'.'+component,

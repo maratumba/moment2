@@ -71,7 +71,7 @@ def parse_greens_name(greens_name):
     m = len(terms) - zero_terms
     data = {
         "m": m,
-        "n": n,
+        "n": int(n),
         "is_h": is_h,
         "comp": comp,
         "terms": terms,
