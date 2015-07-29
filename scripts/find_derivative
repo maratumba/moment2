@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import argparse
+import math
 import numpy as np
 
 from obspy.core import read
@@ -74,18 +75,20 @@ def calc_derivative(moments, greens_names, der_to_compute,
         u = read(seismogramfile.replace(".z", "."+component))
         tr = Trace(u[0].data, u[0].stats)
         for moment, greens in zip(moments, greens_names):
-            a, b, m_value = moment
+            (m, n), b, m_value = moment
+            print("m:", m, "n:", n)
+            co = 1/(math.factorial(m)*math.factorial(n))
             if greens == der_to_compute:
-                divider = m_value
+                divider = co*m_value
             else:
                 # change generic component name to a valid one
                 greens_name = greens.replace("_n", "_"+component)
                 g = r.get(greens_name)
-                print("- {0:.2f}*{1}".format(m_value, greens_name))
+                print("- {0:.2f}*{1}".format(co*m_value, greens_name))
                 # HACK: should we divide by 2e15?
-                tr.data = tr.data - m_value*g[0].data/2e15
+                tr.data = tr.data - co*m_value*g[0].data/2e15
 
-        tr.data = tr.data / divider
+        tr.data = tr.data / divider * 2e15
         print("/ {0:.2f} = {1}".format(divider, der_to_compute))
         st = Stream(traces=[tr])
         st.write(get_greens_filename(
