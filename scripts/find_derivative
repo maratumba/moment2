@@ -77,7 +77,7 @@ def calc_derivative(moments, greens_names, der_to_compute,
         for moment, greens in zip(moments, greens_names):
             (m, n), b, m_value = moment
             print("m:", m, "n:", n)
-            co = 1/(math.factorial(m)*math.factorial(n))
+            co = 1.0/(math.factorial(m)*math.factorial(n))
             if greens == der_to_compute:
                 divider = co*m_value
             else:
