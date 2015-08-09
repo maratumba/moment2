@@ -5,6 +5,8 @@ import argparse
 import math
 import numpy as np
 
+from collections import namedtuple
+
 from obspy.core import read
 from obspy.core.trace import Trace
 from obspy.core.stream import Stream
@@ -24,9 +26,10 @@ def find_non_zero_moments(moments):
         moments (dict): moments info object
 
     Returns:
-        list: list of non zero moments ((m, n), index, value)
+        list: list of non zero moments ((m, n), indices, value)
     """
     cutoff = 0.00001
+    NonZero = namedtuple('NonZero', ['moment', 'indices', 'value'])
     non_zeros = []
     for moment in moments:
         m = moments[moment]
@@ -34,22 +37,22 @@ def find_non_zero_moments(moments):
             it = np.nditer(m, flags=['multi_index'])
             while not it.finished:
                 if it[0] > cutoff:
-                    non_zeros.append((moment, it.multi_index,
-                                      m[it.multi_index]))
+                    non_zeros.append(NonZero(moment, it.multi_index,
+                                             m[it.multi_index]))
                 it.iternext()
     return non_zeros
 
 
-def moment_notation(moment_index):
+def moment_notation(moment_info):
     """Return human readable moment representation
 
     Args:
-        moment_index (tuple): ((m,n), (indices))
+        moment_info (tuple): ((m, n), index, value)
     """
-    (m, n), indices, value = moment_index
+    m, n = moment_info.moment
 
     c = "xyz"
-    comp = "".join([c[index] for index in indices])
+    comp = "".join([c[index] for index in moment_info.indices])
 
     if comp == "":
         return "M({m},{n})".format(m=m, n=n)
@@ -117,9 +120,11 @@ if __name__ == '__main__':
 
     moment_notations = [moment_notation(moment) for moment in non_zeros]
     # FIXME: only works for force formulation
-    greens_names = [get_greens_name(moment[0][0], moment[0][1],
-                                    3, moment[1], for_force=True)
-                    for moment in non_zeros]
+    greens_names = [get_greens_name(nonzero.moment[0],
+                                    nonzero.moment[1],
+                                    3, nonzero.indices,
+                                    for_force=True)
+                    for nonzero in non_zeros]
     der_options = list(zip(moment_notations, greens_names))
 
     if not args.derivative:
