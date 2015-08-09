@@ -19,16 +19,16 @@ from greens.reader import Reader
 from moments.utils import read_tensor_moment_info_file
 
 
-def find_non_zero_moments(moments):
+def find_non_zero_moments(moments, cutoff=0.00001):
     """Find non zero moments
 
     Args:
         moments (dict): moments info object
+        cutoff (float): cutoff point for non zero moments
 
     Returns:
         list: list of non zero moments ((m, n), indices, value)
     """
-    cutoff = 0.00001
     NonZero = namedtuple('NonZero', ['moment', 'indices', 'value'])
     non_zeros = []
     for moment in moments:
@@ -113,10 +113,13 @@ if __name__ == '__main__':
     parser.add_argument("--derivative", '-d',
                         help="""derivative to find (if it's not given, available options
                         will be presented)""")
+    parser.add_argument("--cutoff", '-c',
+                        type=float, default=0.00001,
+                        help="cutoff number for nonzero moments (0.00001)")
     args = parser.parse_args()
 
     moments = read_tensor_moment_info_file(args.momentfile)
-    non_zeros = find_non_zero_moments(moments)
+    non_zeros = find_non_zero_moments(moments, cutoff=args.cutoff)
 
     moment_notations = [moment_notation(moment) for moment in non_zeros]
     # FIXME: only works for force formulation
