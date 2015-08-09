@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import re
 
+
 def g_to_h(st):
     """Converts G to H
      Hnk,l = \int G_nk,l dt
@@ -86,3 +87,31 @@ def get_greens_filename(greens_name, station_name):
     return "{name}_{terms}.{comp}".format(name=station_name,
                                           terms=data['terms'],
                                           comp=data['comp'])
+
+
+def are_greens_same(name1, name2):
+    """Check if two green's functions are equal.
+
+    It also checks for symmetry.
+
+    Args:
+        name1 (str): first green's function's name
+        name2 (str): second green's function's name
+
+    Returns:
+        bool: equality of green's functions
+    """
+
+    def base_symmetry_for_derivatives(terms):
+        i = terms[0]
+        rest = terms[1:]
+        # turn i,yxz; i,zxy and i,xyz to i,xyz
+        return i+''.join(sorted(rest))
+
+    params1 = parse_greens_name(name1)
+    params1['terms'] = base_symmetry_for_derivatives(params1['terms'])
+
+    params2 = parse_greens_name(name2)
+    params2['terms'] = base_symmetry_for_derivatives(params2['terms'])
+
+    return params1 == params2

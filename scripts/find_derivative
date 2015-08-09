@@ -10,6 +10,7 @@ from obspy.core.trace import Trace
 from obspy.core.stream import Stream
 
 
+from greens.utils import are_greens_same
 from greens.utils import get_greens_name
 from greens.utils import get_greens_filename
 from greens.reader import Reader
@@ -76,10 +77,9 @@ def calc_derivative(moments, greens_names, der_to_compute,
         tr = Trace(u[0].data, u[0].stats)
         for moment, greens in zip(moments, greens_names):
             (m, n), b, m_value = moment
-            print("m:", m, "n:", n)
             co = 1.0/(math.factorial(m)*math.factorial(n))
-            if greens == der_to_compute:
-                divider = co*m_value
+            if are_greens_same(greens, der_to_compute):
+                divider = divider + co*m_value
             else:
                 # change generic component name to a valid one
                 greens_name = greens.replace("_n", "_"+component)
@@ -124,9 +124,10 @@ if __name__ == '__main__':
 
     if not args.derivative:
         for i, der in enumerate(der_options):
-            print("{i}) {m:11s} {g:7s}".format(i=i,
-                                               m=der[0],
-                                               g=der[1]))
+            print("{i}) {m:12s} {g:11s} {v:.3f}".format(i=i,
+                                                        m=der[0],
+                                                        g=der[1],
+                                                        v=non_zeros[i][2]))
         sel = int(input("Selection: "))
         while sel >= len(der_options):
             print("Not a valid selection.")
