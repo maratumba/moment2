@@ -151,7 +151,7 @@ def readfile(filename, mu):
     file_header = re.compile('#Total number of fault_segments=\s+(?P<segments>\d+)')
     segment_header = re.compile('#Fault_segment =\s+(?P<seg_id>\d+) nx\(Along\-strike\)=\s+(?P<nx>\d+) Dx=\s+(?P<dx>[\d\.]+)km ny\(downdip\)=\s+(?P<ny>\d+) Dy=\s+(?P<dy>[\d\.]+)km')
 
-    point = re.compile('\s*(?P<x>[\d\.]+)\s+(?P<y>[\d\.]+)\s+(?P<depth>[\d\.]+)\s+(?P<dist>[\d\.]+)\s+(?P<slip>[\d\.]+)\s+(?P<rake>[\d\.]+)\s+(?P<rupt_time>[\d\.]+)\s+(?P<rise>[\d\.]+)\s+(?P<fall>[\d\.]+)\s+(?P<strike>[\d\.]+)\s+(?P<dip>[\d\.]+)')
+    point = re.compile('\s*(?P<x>[\-\d\.]+)\s+(?P<y>[\-\d\.]+)\s+(?P<depth>[\d\.]+)\s+(?P<dist>[\d\.]+)\s+(?P<slip>[\d\.]+)\s+(?P<rake>[\d\.]+)\s+(?P<rupt_time>[\d\.]+)\s+(?P<rise>[\d\.]+)\s+(?P<fall>[\d\.]+)\s+(?P<strike>[\d\.]+)\s+(?P<dip>[\d\.]+)')
     with open(filename) as f:
         event = event_info.match(f.readline())
         ev_x = float(event.group('evx'))
