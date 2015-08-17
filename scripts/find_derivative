@@ -120,13 +120,14 @@ if __name__ == '__main__':
 
     moments = read_tensor_moment_info_file(args.momentfile)
     non_zeros = find_non_zero_moments(moments, cutoff=args.cutoff)
+    dist_type = moments['dist_type']
 
     moment_notations = [moment_notation(moment) for moment in non_zeros]
     # FIXME: only works for force formulation
     greens_names = [get_greens_name(nonzero.moment[0],
                                     nonzero.moment[1],
                                     3, nonzero.indices,
-                                    for_force=True)
+                                    for_force=dist_type == "vector")
                     for nonzero in non_zeros]
     der_options = list(zip(moment_notations, greens_names))
 

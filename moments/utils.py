@@ -214,7 +214,8 @@ def write_tensor_moment_info_file(calc, out_file):
     m02 = calc.tensor_moment_all(center, tc, n=2)
 
     np.savez(out_file, m0=m0, m00=m00, center_space=center, center_time=tc,
-             m10=m10, m20=m20, m11=m11, m01=m01, m02=m02)
+             m10=m10, m20=m20, m11=m11, m01=m01, m02=m02,
+             dist_type="moment")
 
 
 def write_vector_moment_info_file(calc, out_file):
@@ -236,7 +237,8 @@ def write_vector_moment_info_file(calc, out_file):
     m02 = calc.vector_moment_all(center, tc, n=2)
 
     np.savez(out_file, m0=m0, m00=m00, center_space=center, center_time=tc,
-             m10=m10, m20=m20, m11=m11, m01=m01, m02=m02)
+             m10=m10, m20=m20, m11=m11, m01=m01, m02=m02,
+             dist_type="vector")
 
 
 def read_tensor_moment_info_file(data_file):
@@ -250,6 +252,7 @@ def read_tensor_moment_info_file(data_file):
     """
     data = np.load(data_file)
     moments = {
+        'dist_type': data['dist_type'],
         'm0': data['m0'],
         'center_space': data['center_space'],
         'center_time': data['center_time'],
