@@ -15,6 +15,7 @@ from obspy.core.stream import Stream
 from greens.utils import are_greens_equivalent
 from greens.utils import get_greens_name
 from greens.utils import get_greens_filename
+from greens.utils import h_to_g
 from greens.reader import Reader
 from moments.utils import read_tensor_moment_info_file
 
@@ -93,7 +94,14 @@ def calc_derivative(moments, greens_names, der_to_compute,
 
         tr.data = tr.data / divider * 2e15
         print("/ {0:.2f} = {1}".format(divider, der_to_compute))
+
         st = Stream(traces=[tr])
+        # If computed derivative is H, turn it back to G
+        if 'H_n' in der_to_compute:
+            st = h_to_g(st)
+            print("{0} = d{1} / dt".format(der_to_compute.replace('H_', 'G_'),
+                                           der_to_compute))
+
         st.write(get_greens_filename(
             der_to_compute.replace("_n", '_'+component),
             station_name),

@@ -11,6 +11,15 @@ def g_to_h(st):
     return st
 
 
+def h_to_g(st):
+    """Convert H to G
+     Gnk,l = d G_nk,l / dt
+    """
+    tr = st[0]  # get first trace
+    tr.differentiate()
+    return st
+
+
 def derivative(st, n):
     """
     Takes derivate due to time n times
