@@ -48,6 +48,14 @@ def calc_moment_tensor(strike, dip, rake):
     m[2, 1] = -1*cos(sigma)*cos(lmbda)*sin(phi) + cos(2*sigma)*sin(lmbda)*cos(phi)
     # M_zz
     m[2, 2] = sin(2*sigma)*sin(lmbda)
+
+    # If value is closer to zero, then make it zero
+    it = np.nditer(m, op_flags=('readwrite',))
+    while not it.finished:
+        if abs(it[0]) < 1e-10:
+            it[0] = 0
+        it.iternext()
+
     return m
 
 
