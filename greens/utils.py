@@ -89,6 +89,13 @@ def get_greens_filename(greens_name, station_name):
                                           comp=data['comp'])
 
 
+def _base_symmetry_for_derivatives(terms):
+    i = terms[0]
+    rest = terms[1:]
+    # turn i,yxz; i,zxy and i,xyz to i,xyz
+    return i+''.join(sorted(rest))
+
+
 def are_greens_same(name1, name2):
     """Check if two green's functions are equal.
 
@@ -102,16 +109,47 @@ def are_greens_same(name1, name2):
         bool: equality of green's functions
     """
 
-    def base_symmetry_for_derivatives(terms):
-        i = terms[0]
-        rest = terms[1:]
-        # turn i,yxz; i,zxy and i,xyz to i,xyz
-        return i+''.join(sorted(rest))
-
     params1 = parse_greens_name(name1)
-    params1['terms'] = base_symmetry_for_derivatives(params1['terms'])
+    params1['terms'] = _base_symmetry_for_derivatives(params1['terms'])
 
     params2 = parse_greens_name(name2)
-    params2['terms'] = base_symmetry_for_derivatives(params2['terms'])
+    params2['terms'] = _base_symmetry_for_derivatives(params2['terms'])
 
     return params1 == params2
+
+
+def are_greens_equivalent(name1, name2):
+    """Check for special case of green's functions
+
+    It returns true if green's functions are the same.
+
+    Special case:
+       H_ni,jab == H_nj,iab
+
+    This is done because moment tensor M is symmetric, so their
+    coefficients for Mij and Mji is the same.
+
+    Args:
+        name1 (str): first green's function's name
+        name2 (str): second green's function's name
+
+    Returns:
+        bool: equivalence of green's functions
+    """
+
+    if are_greens_same(name1, name2):
+        return True
+
+    params1 = parse_greens_name(name1)
+    params2 = parse_greens_name(name2)
+
+    # Special case is not true for force formulation
+    if not params1['is_h'] or not params2['is_h']:
+        return False
+
+    # H_ni,jab => H_nj,iab
+    params1['terms'] = params1['terms'][1] + params1['terms'][0] + params1['terms'][2:]
+
+    new_terms1 = _base_symmetry_for_derivatives(params1['terms'])
+    new_terms2 = _base_symmetry_for_derivatives(params2['terms'])
+    return new_terms1 == new_terms2

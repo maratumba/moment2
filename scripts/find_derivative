@@ -12,7 +12,7 @@ from obspy.core.trace import Trace
 from obspy.core.stream import Stream
 
 
-from greens.utils import are_greens_same
+from greens.utils import are_greens_equivalent
 from greens.utils import get_greens_name
 from greens.utils import get_greens_filename
 from greens.reader import Reader
@@ -81,7 +81,7 @@ def calc_derivative(moments, greens_names, der_to_compute,
         for moment, greens in zip(moments, greens_names):
             (m, n), b, m_value = moment
             co = 1.0/(math.factorial(m)*math.factorial(n))
-            if are_greens_same(greens, der_to_compute):
+            if are_greens_equivalent(greens, der_to_compute):
                 divider = divider + co*m_value
             else:
                 # change generic component name to a valid one
