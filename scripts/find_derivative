@@ -36,7 +36,7 @@ def find_non_zero_moments(moments, cutoff=0.00001):
         if isinstance(moment, tuple):  # do not go over center_* and m0
             it = np.nditer(m, flags=['multi_index'])
             while not it.finished:
-                if it[0] > cutoff:
+                if abs(it[0]) > cutoff:
                     non_zeros.append(NonZero(moment, it.multi_index,
                                              m[it.multi_index]))
                 it.iternext()
