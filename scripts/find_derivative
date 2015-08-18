@@ -74,6 +74,7 @@ def calc_derivative(moments, greens_names, der_to_compute,
 
     """
     r = Reader(greens_path, station_name)
+    is_h = "H_n" in der_to_compute
     for component in ['r', 't', 'z']:
         print("u_"+component)
         divider = 0
@@ -82,6 +83,8 @@ def calc_derivative(moments, greens_names, der_to_compute,
         for moment, greens in zip(moments, greens_names):
             (m, n), b, m_value = moment
             co = 1.0/(math.factorial(m)*math.factorial(n))
+            if is_h:
+                co = co * (-1.0)**n
             if are_greens_equivalent(greens, der_to_compute):
                 divider = divider + co*m_value
             else:
@@ -97,7 +100,7 @@ def calc_derivative(moments, greens_names, der_to_compute,
 
         st = Stream(traces=[tr])
         # If computed derivative is H, turn it back to G
-        if 'H_n' in der_to_compute:
+        if is_h:
             st = h_to_g(st)
             print("{0} = d{1} / dt".format(der_to_compute.replace('H_', 'G_'),
                                            der_to_compute))
