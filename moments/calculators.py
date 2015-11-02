@@ -6,6 +6,7 @@ from moments.utils import grid
 from moments.utils import crange
 from moments.utils import animate_1d_function
 from moments.utils import animate_2d_function
+from moments.utils import read_values_from_file
 
 
 class DiscreteScalarMomentCalc(object):
@@ -476,3 +477,16 @@ class TensorMomentCalc(DiscreteScalarMomentCalc):
             for j in range(self.shape[1]):
                 moment[i, j] = self.comp_calc[i, j].moment_all(q, tau, m, n)
         return moment
+
+    @classmethod
+    def get_from_file(cls, filename):
+        """Create a calculator by reading discrete value file
+
+        Args:
+            filename (str): filename to read
+
+        Return:
+            TensorMomentCalc
+        """
+        values = read_values_from_file(filename)
+        return TensorMomentCalc(*values)

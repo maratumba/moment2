@@ -195,6 +195,35 @@ def animate_2d_function(function, points, times):
     plt.show()
 
 
+def write_discrete_values_file(values, points, times, dxs, dt, out_file):
+    """Writes discrete values to a file
+
+    Args:
+        values (np.ndarray): values
+        points (np.ndarray): spatial locations
+        times (np.ndarray): time values
+        dxs (list): [dx, dy, dz]
+        dt (float): dt value
+        out_file (str): filename to write
+    """
+    np.savez(out_file, values=values, points=points, times=times,
+             dxs=dxs, dt=dt)
+
+
+def read_values_from_file(filename):
+    """Read discrete value file and return values
+
+    Args:
+        filename (str): filename to read
+
+    Return:
+        tuple: (values, points, times, dxs, dt)
+    """
+    data = np.load(filename)
+    return (data["values"], data["points"], data["times"],
+            data["dxs"], data["dt"])
+
+
 def write_tensor_moment_info_file(calc, out_file):
     """Calculates moment values and writes them to a file
 
