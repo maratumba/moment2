@@ -56,7 +56,7 @@ def calc_moment_tensor(strike, dip, rake):
             it[0] = 0
         it.iternext()
 
-    return m
+    return m/np.linalg.norm(m)
 
 
 def get_slip_rate_function(rise, fall, rupt_time=0):
@@ -97,9 +97,9 @@ class Point(object):
             match (match): regular expression match for a file line
             mu (dict): rigidity value contaning dict (dyne/cm^2)
         """
-        self.x = float(match.group('x'))
-        self.y = float(match.group('y'))
-        self.depth = float(match.group('depth'))
+        self.x = float(match.group('x'))*1e5
+        self.y = float(match.group('y'))*1e5
+        self.depth = float(match.group('depth'))*1e5
         self.dist = float(match.group('dist'))
         self.slip = float(match.group('slip'))
         self.rake = float(match.group('rake'))
@@ -127,7 +127,7 @@ class Point(object):
         m = calc_moment_tensor(self.strike, self.dip, self.rake)
 
         # m0 = mu*D
-        m0 = self.mu*self.slip
+        m0 = 10*self.mu*self.slip
         self.m = m0*m
 
         return self.m
@@ -162,8 +162,8 @@ def readfile(filename, mu):
     point = re.compile('\s*(?P<x>[\-\d\.]+)\s+(?P<y>[\-\d\.]+)\s+(?P<depth>[\d\.]+)\s+(?P<dist>[\d\.]+)\s+(?P<slip>[\d\.]+)\s+(?P<rake>[\d\.]+)\s+(?P<rupt_time>[\d\.]+)\s+(?P<rise>[\d\.]+)\s+(?P<fall>[\d\.]+)\s+(?P<strike>[\d\.]+)\s+(?P<dip>[\d\.]+)')
     with open(filename) as f:
         event = event_info.match(f.readline())
-        ev_x = float(event.group('evx'))
-        ev_y = float(event.group('evy'))
+        ev_x = float(event.group('evx'))*1e5
+        ev_y = float(event.group('evy'))*1e5
 
         # ev_utm = utm.from_latlon(evla, evlo)
         # ev_x = ev_utm[1]  # northing
@@ -180,8 +180,8 @@ def readfile(filename, mu):
             # print("segment:", segment.groups())
             nx = int(segment.group('nx'))
             ny = int(segment.group('ny'))
-            dx = float(segment.group('dx'))
-            dy = float(segment.group('dy'))
+            dx = float(segment.group('dx'))*1e5
+            dy = float(segment.group('dy'))*1e5
 
             n_p = nx*ny
 

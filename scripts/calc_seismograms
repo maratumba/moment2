@@ -37,8 +37,7 @@ def calc_station(folder, name, component, moments):
     for m in range(3):
         for n in range(3):
             if m+n <= 2:
-                # FIXME: divide by 10^15 dyne/cm^2 ?
-                co = ((-1.0)**n)/(math.factorial(m)*math.factorial(n))/2e15
+                co = ((-1.0)**n)/(math.factorial(m)*math.factorial(n))
                 for k in range(3):
                     for l in range(3):
                         f = moments[(m, n)][k, l]
