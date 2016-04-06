@@ -1,0 +1,125 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+import argparse
+import glob
+import os
+
+from greens.reader import Reader
+from greens.utils import get_greens_filename_with_time_info
+
+from moments.utils import read_tensor_moment_info_file
+
+from obspy.core.trace import Trace
+from obspy.core.stream import Stream
+
+import math
+import numpy as np
+
+
+def calc_station_components(folder, name, component, moments, tol=1e-10):
+    """Calculate station components for given moments and green's
+    functions (and their derivatives)
+
+    Args:
+        folder (str): folder that contains green's functions
+        name (str): station name
+        component (str): component to calculate (r, t, z)
+        moments (dict): moments info object
+        tol (float): lowest possible value for moment
+
+    Returns:
+        obspy.core.stream.Stream: obspy stream that contains the calculated
+                                  seismogram
+    """
+    r = Reader(folder, name)
+
+    data = None
+    c = 'xyz'
+    component_dir = name+"_components"
+    os.makedirs(component_dir, exist_ok=True)
+    for m in range(3):
+        for n in range(3):
+            if m+n <= 2:
+                co = ((-1.0)**n)/(math.factorial(m)*math.factorial(n))
+                for k in range(3):
+                    for l in range(3):
+                        f = moments[(m, n)][k, l]
+                        if m == 0:
+                            if f > tol:
+                                grn = "dt^{t} H_{n}{k},{l}".format(t=n, n=component,
+                                                                   k=c[k], l=c[l])
+                                st = r.get(grn)
+                                st[0].data = co*f*st[0].data
+                                write_stream_as_sac(st, component_dir,
+                                                    get_greens_filename_with_time_info(grn, name),
+                                                    verbose=True)
+                        elif m == 1:
+                            for j1 in range(3):
+                                if f[j1] > tol:
+                                    grn = "dt^{t} H_{n}{k},{l}{j1}".format(t=n, n=component,
+                                                                           k=c[k], l=c[l],
+                                                                           j1=c[j1])
+                                    st = r.get(grn)
+                                    st[0].data = co*f[j1]*st[0].data
+                                    write_stream_as_sac(st, component_dir,
+                                                        get_greens_filename_with_time_info(grn, name),
+                                                        verbose=True)
+                        else:  # m == 2
+                            for j1 in range(3):
+                                for j2 in range(3):
+                                    if f[j1][j2] > tol:
+                                        grn = "dt^{t} H_{n}{k},{l}{j1}{j2}".format(t=n, n=component,
+                                                                                   k=c[k], l=c[l],
+                                                                                   j1=c[j1], j2=c[j2])
+                                        st = r.get(grn)
+                                        st[0].data = co*f[j1][j2]*st[0].data
+                                        write_stream_as_sac(st, component_dir,
+                                                            get_greens_filename_with_time_info(grn, name),
+                                                            verbose=True)
+
+
+def write_stream_as_sac(stream, folder, filename, verbose=False):
+    """Writes stream as a sac file
+
+    Args:
+        stream (obspy.core.stream.Stream): stream object
+        folder (str): folder to store the file
+        filename (str): file name
+        verbose (bool): print what you did
+    """
+    stream.write(os.path.join(folder, filename), 'SAC')
+    if verbose:
+        print(os.path.join(folder, filename) + " is written.")
+
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser(
+        description='Calculate seismogram components from moments and Green\'s functions')
+    parser.add_argument("momentfile", help="moment file")
+    parser.add_argument("greens_path",
+                        help="folder that contains green's functions")
+    parser.add_argument("station_names", nargs="*",
+                        help="station name (assumes all stations if omitted)")
+    parser.add_argument('-c', '--components', nargs='*',
+                        default=['r', 't', 'z'],
+                        help='components to calculate default r, t, z')
+    parser.add_argument("--tolerance", '-t',
+                        help="tolerance value (default is 1x10^-10)",
+                        default=1e-10, type=float)
+    parser.add_argument('-v', '--verbose', action='store_true')
+    args = parser.parse_args()
+
+    # read moment information file
+    moments = read_tensor_moment_info_file(args.momentfile)
+
+    if not args.station_names:  # if no station name is given
+        folders = glob.glob(os.path.join(args.greens_path, '*_greens'))
+        names = [folder.split('/')[-1].split('_')[0] for folder in folders]
+        args.station_names = names
+
+    # calculate components and write them as a sac file
+    for station_name in args.station_names:
+        for component in args.components:
+            st = calc_station_components(args.greens_path,
+                                         station_name, component, moments, args.tolerance)

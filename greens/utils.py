@@ -98,6 +98,20 @@ def get_greens_filename(greens_name, station_name):
                                           comp=data['comp'])
 
 
+def get_greens_filename_with_time_info(greens_name, station_name):
+    """Return green's function's filename with time info included
+    """
+    data = parse_greens_name(greens_name)
+    name = "{name}_{terms}.{comp}".format(name=station_name,
+                                          terms=data['terms'],
+                                          comp=data['comp'])
+    if data['n'] == 1:
+        name = 'dt_'+name
+    elif data['n'] > 1:
+        name = 'dt'+str(data['n'])+'_'+name
+    return name
+
+
 def _base_symmetry_for_derivatives(terms):
     i = terms[0]
     rest = terms[1:]

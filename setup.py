@@ -16,7 +16,8 @@ setup(
              'scripts/parse_kineticxyz', 'scripts/read_moments',
              'scripts/parse_kineticxyz_force', 'scripts/calc_seismograms_force',
              'scripts/find_derivative',
-             'scripts/discrete_kineticout', 'scripts/discrete_kineticxyz'],
+             'scripts/discrete_kineticout', 'scripts/discrete_kineticxyz',
+             'scripts/calc_components'],
     long_description="Moment Calculators for fault planes and utilities to work with green's functions.",
     classifiers=[
         "Development Status :: 3 - Alpha",
