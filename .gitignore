@@ -10,3 +10,4 @@ dist
 *.r
 *.t
 *.mac
+*.egg-info
