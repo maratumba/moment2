@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
 import argparse
@@ -36,6 +36,61 @@ def calc_station(folder, name, component, moments):
     c = 'xyz'
     for m in range(3):
         for n in range(3):
+            if m+n <= 2:
+                co = ((-1.0)**n)/(math.factorial(m)*math.factorial(n))
+                for k in range(3):
+                    for l in range(3):
+                        f = moments[(m, n)][k, l]
+                        if m == 0:
+                            grn = "dt^{t} H_{n}{k},{l}"
+                            st = r.get(grn.format(t=n, n=component,
+                                                  k=c[k], l=c[l]))
+                            tr = st[0]
+                            if data is None:
+                                data = Trace(co*f*tr.data, tr.stats)
+                            else:
+                                data.data = data.data + co*f*tr.data
+                        elif m == 1:
+                            for j1 in range(3):
+                                grn = "dt^{t} H_{n}{k},{l}{j1}"
+                                st = r.get(grn.format(t=n, n=component,
+                                                      k=c[k], l=c[l],
+                                                      j1=c[j1]))
+                                tr = st[0]
+                                data.data = data.data + co*f[j1]*tr.data
+                        else:  # m == 2
+                            for j1 in range(3):
+                                for j2 in range(3):
+                                    grn = "dt^{t} H_{n}{k},{l}{j1}{j2}"
+                                    st = r.get(grn.format(t=n, n=component,
+                                                          k=c[k], l=c[l],
+                                                          j1=c[j1], j2=c[j2]))
+                                    tr = st[0]
+                                    data.data = data.data + co*f[j1][j2]*tr.data
+
+    stream = Stream(traces=[data])
+    return stream
+
+def calc_station_m0(folder, name, component, moments):
+    """Calculate station seismogram for given moments and green's
+    functions (and their derivatives)
+
+    Args:
+        folder (str): folder that contains green's functions
+        name (str): station name
+        component (str): component to calculate (r, t, z)
+        moments (dict): moments info object
+
+    Returns:
+        obspy.core.stream.Stream: obspy stream that contains the calculated
+                                  seismogram
+    """
+    r = Reader(folder, name)
+
+    data = None
+    c = 'xyz'
+    for m in range(1):
+        for n in range(1):
             if m+n <= 2:
                 co = ((-1.0)**n)/(math.factorial(m)*math.factorial(n))
                 for k in range(3):
@@ -118,4 +173,9 @@ if __name__ == '__main__':
                               station_name, component, moments)
             write_stream_as_sac(st, args.output_folder,
                                 station_name+'.'+component,
+                                args.verbose)
+            st_m0 = calc_station_m0(args.greens_path,
+                              station_name, component, moments)
+            write_stream_as_sac(st_m0, args.output_folder,
+                                station_name+'.m0.'+component,
                                 args.verbose)

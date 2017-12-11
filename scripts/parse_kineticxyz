@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
 import argparse
@@ -223,6 +223,20 @@ def plot_points(xyz, points):
     plt.show()
 
 
+def plot_eig(eig):
+    fig=plt.figure()
+    ax=fig.add_subplot(111,projection='3d')
+    orig_vector=np.array([0,0,0])
+    mval=eig[0]
+    mvec=eig[1]/np.max(eig[1])
+
+    X=Mvec
+
+    ax.quiver(orig_vector,orig_vector,orig_vector,mvec[0,:]*mval[0],mvec[1,:]*mval[1],mvec[2,:]*mval[2])
+    print((mvec[0,:]*mval[0],mvec[1,:]*mval[1],mvec[2,:]*mval[2]))
+    plt.show()
+
+
 def generate_time_space_points(points, xyz, dt):
     """Generate time and space points to be used in moment calculation
 
@@ -267,6 +281,7 @@ def read_rigidity_file(filename):
 
     return values
 
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(
         description="Parses kinetic_out file and calculates moment values")
@@ -288,6 +303,7 @@ if __name__ == '__main__':
     # Using defaultdict to be consistent with data structure
     # This will give same value for any depth.
     rigidity = defaultdict(lambda: args.rigidity)
+
     if args.rigidities:
         rigidity = read_rigidity_file(args.rigidities)
 
@@ -299,4 +315,30 @@ if __name__ == '__main__':
     v, p, t = generate_time_space_points(points, xyz, args.dt)
 
     calc = TensorMomentCalc(v, p, t, [dx, dy, 1], args.dt)
+
+    center_space = calc.center_of_gravity()
+    center_time = calc.moment_all(center_space, 0, n=1) / calc.moment0_seis()
+    # 2nd order moment matrisi [xx xy xz; xy yy yz; xz yz zz]
+    M=calc.moment_all(center_space, center_time, m=2)
+    print(M)
+
+    eig=np.linalg.eig(M)
+
+    print(eig)
+    plot_eig(eig)
+
+
+
+
+    # 2nd order temporal moment
+    # print(calc.moment_all(center_space, center_time, n=2))
+    # # 2nd order spatial moment xx
+    # print(calc.moment(center_space, center_time, m=2, ks=[0, 0]))
+    # # 2nd order spatial moment yy
+    # print(calc.moment(center_space, center_time, m=2, ks=[1, 1]))
+    # # 2nd order spatial moment zz
+    # print(calc.moment(center_space, center_time, m=2, ks=[2, 2]))
+
+
+
     write_tensor_moment_info_file(calc, args.output)

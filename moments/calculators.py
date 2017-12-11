@@ -77,6 +77,25 @@ class DiscreteScalarMomentCalc(object):
             vs *= (self.times - tau)
         return vs.sum()
 
+    def moment0_seis(self, recalc=False):
+        """Shortcut to calculate zero order moment (Revised by ozgun&yaman)
+
+        Args:
+
+            recalc (bool, optional): calculate the value even if it is
+              calcuted before. Otherwise, it will return the cached
+              value.
+
+        Returns:
+            float: value of zero order moment
+
+        """
+        if self.m0 and not recalc:
+            return self.m0
+        self.m0 = np.sqrt(self.moment(np.zeros(self.dimension), 0, m=0, n=0))/np.sqrt(2)
+
+
+
     def moment0(self, recalc=False):
         """Shortcut to calculate zero order moment
 
@@ -124,7 +143,7 @@ class DiscreteScalarMomentCalc(object):
         # shape of combinations
         # m = 1 => a dimension length vector
         # m = 2 => a matrix dimension by dimension
-        shape = np.ones(m)*self.dimension
+        shape = np.ones(m,dtype=int)*self.dimension
         moments = np.zeros(shape)
         for ks in itertools.combinations_with_replacement(indices, m):
             moment = self.moment(q, tau, m, n, ks)
